@@ -5,7 +5,12 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+
 
 class HintView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -25,6 +30,7 @@ class HintView @JvmOverloads constructor(
         strokeWidth = 2f
         textSize = 22f * textFitScreen()
         color = ResourcesCompat.getColor(resources,R.color.colorPaint,null)
+        isAntiAlias = true
     }
 
     val rect = Rect(50,50,1000,1000)
@@ -59,6 +65,8 @@ class HintView @JvmOverloads constructor(
         canvas.clipRect(Rect(0,0,canvas.width,canvas.height))
 
         canvas.drawText("hello",recX,recY-200,paint)
+
+        drawCurvedArrow(200,200,400,400,100,canvas)
     }
 
     fun setRetangle(x:Float,y:Float,width:Int,height:Int){
@@ -74,4 +82,23 @@ class HintView @JvmOverloads constructor(
     fun textFitScreen(): Float {
         return resources.displayMetrics.density
     }
+
+    fun drawCurvedArrow(x1: Int, y1: Int, x2: Int, y2: Int, curveRadius: Int,canvas: Canvas) {
+        val path = Path()
+        val midX = x1 + (x2 - x1) / 2
+        val midY = y1 + (y2 - y1) / 2
+        val xDiff = midX - x1.toFloat()
+        val yDiff = midY - y1.toFloat()
+        val angle = atan2(yDiff.toDouble(), xDiff.toDouble()) * (180 / Math.PI) - 90
+        val angleRadians = Math.toRadians(angle)
+        val pointX =
+            (midX + curveRadius * cos(angleRadians)).toFloat()
+        val pointY =
+            (midY + curveRadius * sin(angleRadians)).toFloat()
+        path.moveTo(x1.toFloat(), y1.toFloat())
+        path.cubicTo(x1.toFloat(), y1.toFloat(), pointX, pointY, x2.toFloat(), y2.toFloat())
+        path.addOval(RectF(x2.toFloat(),y2.toFloat(),50f,50f),Path.Direction.CW)
+        canvas.drawPath(path, paint)
+    }
 }
+
